@@ -133,6 +133,7 @@ component "puppet" do |pkg, settings, platform|
         --vardir=#{vardir} \
         --rundir=#{piddir} \
         --logdir=#{logdir} \
+        --localedir=#{settings[:datadir]}/locale \
         --configs \
         --quick \
         --no-batch-files \
