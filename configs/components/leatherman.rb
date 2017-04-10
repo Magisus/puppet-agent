@@ -86,20 +86,6 @@ component "leatherman" do |pkg, settings, platform|
     end
   end
 
-  # We do not currently support i18n on Solaris
-  unless platform.is_solaris?
-    if platform.is_windows?
-      msgfmt = "/cygdrive/c/tools/pl-build-tools/bin/msgfmt.exe"
-    elsif platform.is_osx?
-      msgfmt = "/usr/local/opt/gettext/bin/msgfmt"
-    else
-      msgfmt = "/opt/pl-build-tools/bin/msgfmt"
-    end
-    pkg.configure do
-      ["for dir in ./locales/*/ ; do [ -d \"$${dir}/LC_MESSAGES\" ] || /bin/mkdir \"$${dir}/LC_MESSAGES\" ; #{msgfmt} \"$${dir}/leatherman.po\" -o \"$${dir}/LC_MESSAGES/leatherman.mo\" ; done ",]
-    end
-  end
-
   pkg.configure do
     ["#{cmake} \
         #{toolchain} \
