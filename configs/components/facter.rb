@@ -136,6 +136,7 @@ component "facter" do |pkg, settings, platform|
   cp = platform[:cp]
 
   special_flags = " -DCMAKE_INSTALL_PREFIX=#{settings[:prefix]} "
+  leatherman_locale_var = ''
 
   # cmake on OSX is provided by brew
   # a toolchain is not currently required for OSX since we're building with clang.
@@ -165,6 +166,9 @@ component "facter" do |pkg, settings, platform|
     toolchain = "-DCMAKE_TOOLCHAIN_FILE=#{settings[:tools_root]}/pl-build-toolchain.cmake"
     special_flags = "-DCMAKE_INSTALL_PREFIX=#{settings[:facter_root]} \
                      -DRUBY_LIB_INSTALL=#{settings[:facter_root]}/lib "
+
+    # Use environment variable set in environment.bat to find locale files
+    leatherman_locale_var = "-DLEATHERMAN_LOCALE_VAR='PL_BASEDIR' -DLEATHERMAN_LOCALE_INSTALL='puppet/share/locale'"
   else
     toolchain = "-DCMAKE_TOOLCHAIN_FILE=/opt/pl-build-tools/pl-build-toolchain.cmake"
     cmake = "/opt/pl-build-tools/bin/cmake"
@@ -184,20 +188,6 @@ component "facter" do |pkg, settings, platform|
                        -DRUBY_LIB_INSTALL=#{settings[:ruby_vendordir]}"
   end
 
-  # We do not currently support i18n on Solaris
-  unless platform.is_solaris?
-    if platform.is_windows?
-      msgfmt = "/cygdrive/c/tools/pl-build-tools/bin/msgfmt.exe"
-    elsif platform.is_osx?
-      msgfmt = "/usr/local/opt/gettext/bin/msgfmt"
-    else
-      msgfmt = "/opt/pl-build-tools/bin/msgfmt"
-    end
-    pkg.configure do
-      ["for dir in ./locales/*/ ; do [ -d \"$${dir}/LC_MESSAGES\" ] || /bin/mkdir \"$${dir}/LC_MESSAGES\" ; #{msgfmt} \"$${dir}/FACTER.po\" -o \"$${dir}/LC_MESSAGES/facter.mo\" ; done ",]
-    end
-  end
-
   # Until we build our own gettext packages, disable using locales.
   # gettext 0.17 is required to compile .mo files with msgctxt.
   # FACTER_RUBY Needs bindir
@@ -209,6 +199,7 @@ component "facter" do |pkg, settings, platform|
         -DCMAKE_PREFIX_PATH=#{settings[:prefix]} \
         -DCMAKE_INSTALL_RPATH=#{settings[:libdir]} \
         #{special_flags} \
+        #{leatherman_locale_var} \
         -DBOOST_STATIC=ON \
         -DYAMLCPP_STATIC=ON \
         -DWITHOUT_CURL=#{skip_curl} \
